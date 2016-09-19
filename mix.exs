@@ -14,7 +14,11 @@ defmodule VoloServer.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications:
+      [ :logger,
+        :cowboy,
+        :ranch]
+    ]
   end
 
   # Type "mix help deps" for more examples and options
@@ -22,7 +26,7 @@ defmodule VoloServer.Mixfile do
     [
       { :cowboy, github: "ninenines/cowboy", tag: "2.0.0-pre.3" },
       { :poison, "~> 2.0"},
-      { :uuid, "~> 0.1.5" },
+      { :uuid, "~> 1.1" },
       { :apex, "~> 0.5.2 "},
       { :table_rex, "~> 0.8.3"}
     ]
