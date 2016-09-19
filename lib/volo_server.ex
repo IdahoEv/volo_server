@@ -1,0 +1,2 @@
+defmodule VoloServer do
+end
