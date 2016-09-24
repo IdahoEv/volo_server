@@ -14,10 +14,13 @@ defmodule VoloServer.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications:
+    [ mod: { VoloServer, [] },
+      applications:
       [ :logger,
         :cowboy,
-        :ranch]
+        :ranch,
+        :gproc
+      ]
     ]
   end
 
@@ -28,7 +31,17 @@ defmodule VoloServer.Mixfile do
       { :poison, "~> 2.0"},
       { :uuid, "~> 1.1" },
       { :apex, "~> 0.5.2 "},
-      { :table_rex, "~> 0.8.3"}
+      { :table_rex, "~> 0.8.3"},
+      { :gproc, "~> 0.6.1"},
+
+      # Dev
+      { :mix_test_watch, "~> 0.2", only: :dev},
+      { :ex_doc, "~> 0.12", only: :dev },
+
+      # Test
+      { :excoveralls, "~> 0.5", only: :test },
+      { :triq, github: "triqng/triq", only: :test},
+      { :ex_spec, ">= 0.0.0", only: :test }
     ]
   end
 end
