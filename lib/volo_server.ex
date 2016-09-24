@@ -1,6 +1,7 @@
 defmodule VoloServer do
   def start(_type, _args) do
-    Volo.Game.GameSupervisor.new_game() 
+    { pid, _game_number} = Volo.Game.GameSupervisor.new_game()
+    { :ok, pid }
   end
 
 end

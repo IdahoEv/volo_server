@@ -14,7 +14,8 @@ defmodule VoloServer.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications:
+    [ mod: { VoloServer, [] },
+      applications:
       [ :logger,
         :cowboy,
         :ranch,
