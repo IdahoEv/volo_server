@@ -3,16 +3,14 @@ defmodule Volo.Game.PlayerSupervisor do
   import Volo.Game.RegistryUtils
 
   # API
-  def start_link(args) do
-    IO.puts "Starting #{__MODULE__} with "
-    IO.inspect args
-    IO.puts "-----------"
-    Supervisor.start_link(__MODULE__, args, name: via_tuple(args, :player_supervisor))
+  def start_link([game_number]) do
+    Supervisor.start_link(__MODULE__, [game_number],
+      name: via_tuple(game_number, :player_supervisor))
   end
 
   # GenServer Callbacks
-  def init(args) do
-    children = [ worker(Volo.Game.Player, args, restart: :temporary) ]
+  def init([game_number]) do
+    children = [ worker(Volo.Game.Player, [game_number], restart: :temporary) ]
     supervise(children, strategy: :simple_one_for_one)
   end
 end

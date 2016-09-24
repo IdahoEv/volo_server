@@ -11,16 +11,15 @@ defmodule Volo.Game.World do
   This module manages a GenServer that handles the fast game update
   loop.
   """
+  defstruct game_number: nil
 
   use GenServer
   import Volo.Game.RegistryUtils
 
   # API
-  def start_link(args) do
-    IO.puts "Starting #{__MODULE__} with "
-    IO.inspect args
-    IO.puts "-----------"
-    GenServer.start_link(__MODULE__, args, name: via_tuple(args, :world))
+  def start_link([game_number]) do
+    GenServer.start_link(__MODULE__, [game_number],
+      name: via_tuple(game_number, :world))
   end
 
   # GenServer Callbacks

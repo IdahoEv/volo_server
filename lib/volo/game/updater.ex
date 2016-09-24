@@ -5,19 +5,19 @@ defmodule Volo.Game.Updater do
   several times persecond.
   """
 
+  defstruct game_number: nil
+
   use GenServer
   import Volo.Game.RegistryUtils
 
-  def start_link(args) do
-    IO.puts "Starting #{__MODULE__} with "
-    IO.inspect args
-    IO.puts "-----------"
-    GenServer.start_link(__MODULE__, args, name: via_tuple(args, :updater))
+  def start_link([game_number]) do
+    GenServer.start_link(__MODULE__, [game_number],
+      name: via_tuple([game_number], :updater))
   end
 
-  def init(args) do
-    { :ok, args }
+  # GenServer Callbacks
+  def init(game_number) do
+    {:ok, %__MODULE__{ game_number: game_number }}
   end
-
 
 end
