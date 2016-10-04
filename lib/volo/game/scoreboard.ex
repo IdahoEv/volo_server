@@ -3,20 +3,20 @@ defmodule Volo.Game.Scoreboard do
   A GenServer that keeps track of score-related state, like shots fired,
   shots hit, tanks killed, etc.
   """
-  defstruct game_number: nil
+  defstruct game_id: nil
 
   use GenServer
   import Volo.Game.RegistryUtils
 
   # API
-  def start_link([game_number]) do
-    GenServer.start_link(__MODULE__, game_number,
-      name: via_tuple(game_number, :scoreboard))
+  def start_link([game_id]) do
+    GenServer.start_link(__MODULE__, game_id,
+      name: via_tuple(game_id, :scoreboard))
   end
 
   # GenServer Callbacks
-  def init(game_number) do
-    {:ok, %__MODULE__{ game_number: game_number }}
+  def init(game_id) do
+    {:ok, %__MODULE__{ game_id: game_id }}
   end
 
 end

@@ -19,22 +19,22 @@ defmodule Volo.Game.GameSupervisor do
   supervised by player_sup_NNNNN.
   """
   def new_game do
-    game_number = Volo.Util.ID.short
+    game_id = Volo.Util.ID.short
     {:ok, supervisor} = Supervisor.start_link(
       __MODULE__,
-      [game_number],
-      name: via_tuple(game_number, :game_supervisor)
+      [game_id],
+      name: via_tuple(game_id, :game_supervisor)
     )
-    { supervisor, game_number }
+    { supervisor, game_id }
   end
 
-  def init(game_number) do
+  def init(game_id) do
     children = [
-      worker(Volo.Game, [game_number]),
-      worker(Volo.Game.Updater, [game_number]),
-      worker(Volo.Game.World, [game_number]),
-      worker(Volo.Game.Scoreboard, [game_number]),
-      supervisor(Volo.Game.PlayerSupervisor, [game_number])
+      worker(Volo.Game, [game_id]),
+      worker(Volo.Game.Updater, [game_id]),
+      worker(Volo.Game.World, [game_id]),
+      worker(Volo.Game.Scoreboard, [game_id]),
+      supervisor(Volo.Game.PlayerSupervisor, [game_id])
     ]
     supervise(children, strategy: :one_for_one)
   end
