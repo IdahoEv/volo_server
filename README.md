@@ -1,4 +1,4 @@
-# Volo Client
+# Volo Server
 
 This is the server for the game Volo.  Volo is (will be) a reimplementation of the
 classic LAN game "Bolo" by Stuart Cheshire.  The server is written in Elixir. The
