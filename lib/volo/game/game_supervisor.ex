@@ -29,6 +29,8 @@ defmodule Volo.Game.GameSupervisor do
   end
 
   def init(game_id) do
+    label_for_development(__MODULE__, game_id)
+    
     children = [
       worker(Volo.Game, [game_id]),
       worker(Volo.Game.Updater, [game_id]),

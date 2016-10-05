@@ -26,6 +26,8 @@ defmodule Volo.Game do
 
   # Callbacks
   def init(game_id) do
+    # TODO: Disable this in production
+    label_for_development(__MODULE__, game_id)
     {:ok, %__MODULE__{ game_id: game_id }}
   end
 

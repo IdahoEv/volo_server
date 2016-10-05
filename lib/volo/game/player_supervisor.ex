@@ -10,6 +10,8 @@ defmodule Volo.Game.PlayerSupervisor do
 
   # GenServer Callbacks
   def init([game_id]) do
+    label_for_development(__MODULE__, game_id)
+
     children = [ worker(Volo.Game.Player, [game_id], restart: :temporary) ]
     supervise(children, strategy: :simple_one_for_one)
   end

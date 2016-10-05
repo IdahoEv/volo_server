@@ -1,4 +1,6 @@
 defmodule Volo.Game.Player do
+  import Volo.Game.RegistryUtils
+  
   @moduledoc """
   A Player represents a single user playing a specific game.  This struct
   effectively just contains the metadata identifying the player and
@@ -18,8 +20,11 @@ defmodule Volo.Game.Player do
              websocket_pid: :""
 
   def new(name, websocket_pid) do
+    id = Volo.Util.ID.short
+    label_for_development(__MODULE__, id)
+
     %__MODULE__{
-      id:             Volo.Util.ID.short,
+      id:             id,
       private_id:     Volo.Util.ID.long,
       name:           name,
       websocket_pid:  websocket_pid
