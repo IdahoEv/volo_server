@@ -39,7 +39,16 @@ defmodule GameTest do
         # side effects - creates a player process
         assert Process.alive?(player_pid)
       end
-      it "if the name is taken it returns an error"
+      it "if the name is taken it returns an error" do
+        state = %Game{ game_id: "1" }
+        player_supervisor = PlayerSupervisor.start_link([state.game_id])
+
+        return_1 = Game.handle_call({:connect_player, 'name', nil}, self, state)
+        return_2 = Game.handle_call({:connect_player, 'name', nil}, self, state)
+
+        assert { :reply, err_tuple, updated_state }  = return_2
+        assert { :error, :name_taken }               = err_tuple
+      end
     end
 
     context "with a private_id that matches an existing player" do

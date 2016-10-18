@@ -43,6 +43,14 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
+    if PlayerList.retrieve(state.players, { :name, name }) do
+      add_player(name, websocket_pid, state)
+    else
+      { :reply, { :error, :name_taken }, state }
+    end
+  end
+
+  defp add_player(name, websocket_pid, state) do
     {:ok, player_pid} = via_tuple(state.game_id, :player_supervisor)
     |> PlayerSupervisor.add_player(name, state.game_id, websocket_pid)
 
@@ -51,7 +59,7 @@ defmodule Volo.Game do
 
     # needs private_id, game_id, and name
     { :reply,
-      {:ok, player_pid, player},
+      { :ok, player_pid, player },
       %{ state | players: player_list }
     }
   end
