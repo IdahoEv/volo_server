@@ -43,6 +43,7 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
+    # check whether this name is in use
     if PlayerList.retrieve(state.players, { :name, name }) do
       add_player(name, websocket_pid, state)
     else
