@@ -3,7 +3,7 @@ defmodule Volo.Game.GameSupervisor do
   import Volo.Game.RegistryUtils
 
 
-    @doc """
+  @doc """
   Launch a new game and generate its supervision tree.  There will be
   a unique ID for the game, which will be used to identify all the
   processes.  It should look like this:
@@ -30,12 +30,12 @@ defmodule Volo.Game.GameSupervisor do
 
   def init(game_id) do
     label_for_development(__MODULE__, game_id)
-    
+
     children = [
-      worker(Volo.Game, [game_id]),
-      worker(Volo.Game.Updater, [game_id]),
-      worker(Volo.Game.World, [game_id]),
-      worker(Volo.Game.Scoreboard, [game_id]),
+      worker(Volo.Game, [game_id], name: via_tuple(game_id, :game)),
+      worker(Volo.Game.Updater, [game_id], name: via_tuple(game_id, :updater)),
+      worker(Volo.Game.World, [game_id], name: via_tuple(game_id, :world)),
+      worker(Volo.Game.Scoreboard, [game_id], name: via_tuple(game_id, :scoreboard)),
       supervisor(Volo.Game.PlayerSupervisor, [game_id])
     ]
     supervise(children, strategy: :one_for_one)

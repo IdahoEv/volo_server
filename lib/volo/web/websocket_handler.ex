@@ -20,17 +20,17 @@ defmodule Volo.Web.WebsocketHandler do
   end
 
   def websocket_handle({:text, msg}, req, state) do
-    IO.puts "Incoming message on websocket #{self()}"
+    IO.puts "Incoming message on websocket #{inspect(self)}"
     IO.inspect msg
     IO.inspect state
-    IO.inspect self
     data = Poison.Parser.parse!(msg, as: %{})
     IO.inspect data
-    handle_message(data, req, state)
+    # handle_message(data, req, state)
+    { :ok, req, state }
   end
 
   def handle_message(%{ connect: data }, req, state) do
-    case Game.connect_player(data) do
+    case Game.connect_player(data) |> IO.inspect do
       { :ok, player, game_id } -> successful_connection(player)
       { :error, reason } -> failed_connection(reason)
     end
