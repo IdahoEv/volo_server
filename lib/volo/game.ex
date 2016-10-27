@@ -39,7 +39,7 @@ defmodule Volo.Game do
 
   @doc """
   Handle request to connect a player.  Third argument (private id) should be
-  nil if the player is new to this game, and a correct private id if the
+  nil if the player is new to this game, and a player private id if the
   player is in this game but was disconnected.  
   
   Reply is one of:
@@ -60,11 +60,12 @@ defmodule Volo.Game do
     end
   end
 
-  def handle_call( {:connect_player, name, private_id}, websocket_pid, state) do
+  def handle_call( {:connect_player, _name, private_id}, websocket_pid, state) do
     { player_id, private_id, name } = PlayerList.retrieve(state.players, { :private_id, private_id })
     
     player_pid = via_tuple(state.game_id, :player, player_id )
-    player = Player.get_state(player_pid) 
+    
+    player = Player.update_websocket(player_pid, websocket_pid) 
     { :reply, { :ok, player }, state } 
     # case PlayerList.retrieve(state.players, { :private_id, private_id }) do
     #   nil -> {}

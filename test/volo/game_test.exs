@@ -24,17 +24,11 @@ defmodule GameTest do
         assert { :reply, { :ok, player }, updated_state } = return
         assert %Player{}                                  = player
 
-        IO.inspect player
-        # TODO: move these to unit tests for Player.start_link/2
-        assert private_id                           = player.private_id
-        assert 'name'                               = player.name
-        assert "1"                                  = player.game_id
-        assert self                                 == player.websocket_pid
-
+        # player list contains this player and is findable by private id
         assert Enum.count(updated_state.players) == 1
         assert PlayerList.retrieve(
-          updated_state.players, {:private_id, private_id}
-          ) == {  player.id, private_id, 'name' }
+          updated_state.players, {:private_id, player.private_id}
+          ) == {  player.id, player.private_id, 'name' }
 
         # side effects - creates a player process
         assert Process.alive?(RegistryUtils.get_pid("1", :player, player.id))
@@ -69,9 +63,14 @@ defmodule GameTest do
         # reconnect the same player by specifying private_id
         return_2 = Game.handle_call(
           { :connect_player, 'name', player.private_id }, 
-            self, state_1
+            'new_websocket_pid', state_1
           )
-        assert { :reply, { :ok, player_2 }, state_2 } = return_2              
+        assert { :reply, { :ok, player_2 }, state_2 } = return_2
+        # player state should have the new websocket pid 
+        assert player_2.websocket_pid == 'new_websocket_pid'
+        assert Player.get_state(
+            RegistryUtils.via_tuple("1", :player, player_2.id)
+          ).websocket_pid == 'new_websocket_pid'             
       end
       
       @tag :skip

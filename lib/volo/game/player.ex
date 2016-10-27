@@ -23,14 +23,22 @@ defmodule Volo.Game.Player do
 
 
   def start_link(name, game_id, websocket_pid) do
-    # IO.puts "Specific start_link/2 matched in Player"
     GenServer.start_link(__MODULE__,
       [name, game_id, websocket_pid],
       []
     )
   end
 
+  @doc """
+  Retrieve this server's state as a map.
+  """
   def get_state(pid), do: GenServer.call(pid, :get_state)
+  
+  @doc """
+  Update the websocket connection for this player - used when a player
+  reconnects.  Returns the updated state of the player.
+  """
+  def update_websocket(pid, ws_pid), do: GenServer.call(pid, {:update_websocket, ws_pid})
   
   def init([name, game_id, websocket_pid]) do
     id = Volo.Util.ID.short
@@ -48,5 +56,9 @@ defmodule Volo.Game.Player do
   end
 
   def handle_call(:get_state, _from, state), do: { :reply, state, state }
+  def handle_call({ :update_websocket, ws_pid}, _from, state) do
+   state = %__MODULE__{ state | websocket_pid: ws_pid }
+   { :reply, state, state }
+  end
 
 end
