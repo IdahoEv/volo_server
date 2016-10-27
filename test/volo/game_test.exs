@@ -10,7 +10,7 @@ defmodule GameTest do
   describe "connecting a player" do
     context "with no private_id specified" do
 
-      @tag :focus
+
       it "creates a new player and returns the right stuff" do
         state = %Game{ game_id: "1" }
         player_supervisor = PlayerSupervisor.start_link([state.game_id])
@@ -29,34 +29,39 @@ defmodule GameTest do
         assert "1"                                  = player.game_id
         assert self                                 == player.websocket_pid
 
-
         assert Enum.count(updated_state.players) == 1
         assert PlayerList.retrieve(
-          updated_state.players, {:private_id, private_id}) == {
-            player.id, private_id, 'name'
-          }
+          updated_state.players, {:private_id, private_id}
+          ) == {  player.id, private_id, 'name' }
 
         # side effects - creates a player process
         assert Process.alive?(player_pid)
       end
+
+      # @tag :focus
       it "if the name is taken it returns an error" do
         state = %Game{ game_id: "1" }
-        player_supervisor = PlayerSupervisor.start_link([state.game_id])
+        player_supervisor = PlayerSupervisor.start_link(["1"])
 
+        # First player addition called 'name' is okay
         return_1 = Game.handle_call({:connect_player, 'name', nil}, self, state)
-        return_2 = Game.handle_call({:connect_player, 'name', nil}, self, state)
+        assert { :reply, { :ok, _pid, _player }, state_1 } = return_1
 
-        assert { :reply, err_tuple, updated_state }  = return_2
-        assert { :error, :name_taken }               = err_tuple
+        # Second player addition called 'name' is not okay
+        return_2 = Game.handle_call({:connect_player, 'name', nil}, self, state_1)
+        assert { :reply, { :error, :name_taken }, _state_2 }  = return_2
       end
     end
 
     context "with a private_id that matches an existing player" do
+      @tag :skip
       it "if the name matches, it connects this websocket to that player"
-      it "if the name doesn't matches, it returns an error"
+      @tag :skip
+      it "if the name doesn't matche, it returns an error"
     end
 
     context "with a private_id that doesn't exist in this game" do
+      @tag :skip
       it "creates a new player and returns private_id and game_id"
     end
   end

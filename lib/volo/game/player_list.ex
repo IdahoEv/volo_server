@@ -16,25 +16,19 @@ defmodule Volo.Game.PlayerList do
   end
 
   def retrieve(list, { :private_id, private_id }) do
-    case Dict.values(list)
-           |> Enum.find(fn({_, priv_id, _}) -> priv_id == private_id end) do
-      nil    -> :not_found
-      tuple -> tuple
-    end
+    Dict.values(list)
+    |> Enum.find(fn({_, priv_id, _}) -> priv_id == private_id end)
   end
 
   def retrieve(list, { :name, name }) do
-    case Dict.values(list)
-           |> Enum.find(fn({_, _, nm}) -> nm == name end) do
-      nil    -> :not_found
-      tuple -> tuple
-    end
+    Dict.values(list)
+    |> Enum.find(fn({_, _, nm}) -> nm == name end)
   end
 
 
   def retrieve(list, player_id) do
     case Dict.fetch(list, player_id) do
-     :error         -> :not_found
+     :error         -> :nil
      { :ok, tuple } -> tuple
     end
   end

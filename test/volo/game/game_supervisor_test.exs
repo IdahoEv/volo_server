@@ -23,6 +23,7 @@ defmodule GameSupervisorTest do
       ] -- modules == []
     end
 
+    @tag :skip
     it "should assert that they are correctly registered with :gproc"
 
   end

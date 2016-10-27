@@ -43,11 +43,16 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
+    # Trace.ap "Player List", state.players
+
+    PlayerList.retrieve(state.players, { :name, name })
+    #  |> Trace.ap "Find by name >#{name}<"
+
     # check whether this name is in use
     if PlayerList.retrieve(state.players, { :name, name }) do
-      add_player(name, websocket_pid, state)
-    else
       { :reply, { :error, :name_taken }, state }
+    else
+      add_player(name, websocket_pid, state)
     end
   end
 
