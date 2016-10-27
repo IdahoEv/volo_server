@@ -47,8 +47,6 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
-    # Trace.ap "Player List", state.players
-
     PlayerList.retrieve(state.players, { :name, name })
     #  |> Trace.ap "Find by name >#{name}<"
 
@@ -60,16 +58,20 @@ defmodule Volo.Game do
     end
   end
 
-  def handle_call( {:connect_player, _name, private_id}, websocket_pid, state) do
-    { player_id, private_id, name } = PlayerList.retrieve(state.players, { :private_id, private_id })
-    
-    player_pid = via_tuple(state.game_id, :player, player_id )
-    
+  def handle_call( {:connect_player, name, private_id}, websocket_pid, state) do
+    case PlayerList.retrieve(state.players, { :private_id, private_id }) do
+      # player is found and name matches
+      { player_id, private_id, ^name } -> reconnect_player(player_id, websocket_pid, state)
+      
+      # anything else happens
+      _ -> { :reply, { :error, :player_not_found }, state }
+    end    
+  end
+
+  defp reconnect_player(player_id, websocket_pid, state) do
+    player_pid = via_tuple(state.game_id, :player, player_id )    
     player = Player.update_websocket(player_pid, websocket_pid) 
-    { :reply, { :ok, player }, state } 
-    # case PlayerList.retrieve(state.players, { :private_id, private_id }) do
-    #   nil -> {}
-    # end  
+    { :reply, { :ok, player }, state }   
   end
 
   defp add_player(name, websocket_pid, state) do

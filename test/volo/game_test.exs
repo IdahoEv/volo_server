@@ -73,8 +73,23 @@ defmodule GameTest do
           ).websocket_pid == 'new_websocket_pid'             
       end
       
-      @tag :skip
-      it "if the name doesn't matche, it returns an error"
+      it "if the name doesn't match, it returns an error" do
+        state = %Game{ game_id: "1" }
+        player_supervisor = PlayerSupervisor.start_link(["1"])
+
+        # connect a player
+        return_1 = Game.handle_call({:connect_player, 'name', nil}, self, state)
+        assert { :reply, { :ok, player }, state_1 } = return_1
+
+        # reconnect the same player by specifying private_id, but with
+        # a mismatched name 
+        return_2 = Game.handle_call(
+          { :connect_player, 'wrong_name', player.private_id }, 
+            'new_websocket_pid', state_1
+          )
+        assert { :reply, { :error, :player_not_found }, state_2 } = return_2
+      
+      end
     end
 
     context "with a private_id that doesn't exist in this game" do
