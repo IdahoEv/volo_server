@@ -23,6 +23,13 @@ defmodule Volo.Game.RegistryUtils do
   def gproc_key(game_id, :player, player_id ) do
     { game_id, :player, player_id }
   end
+  
+  def get_pid(game_id, name) do
+    :gproc.lookup_pid(gproc_regkey(game_id, name))
+  end
+  def get_pid(game_id, :player, name) do
+    :gproc.lookup_pid(gproc_regkey(game_id, :player, name))
+  end
 
 
   def label_for_development(module_name, game_id) do

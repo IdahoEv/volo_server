@@ -38,8 +38,12 @@ defmodule Volo.Game do
   end
 
   @doc """
-  Handle request to connect a player.  Reply is one of:
-  { :ok, player_pid, player_state }
+  Handle request to connect a player.  Third argument (private id) should be
+  nil if the player is new to this game, and a correct private id if the
+  player is in this game but was disconnected.  
+  
+  Reply is one of:
+  { :ok,    player_state }
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
@@ -56,16 +60,27 @@ defmodule Volo.Game do
     end
   end
 
+  def handle_call( {:connect_player, name, private_id}, websocket_pid, state) do
+    { player_id, private_id, name } = PlayerList.retrieve(state.players, { :private_id, private_id })
+    
+    player_pid = via_tuple(state.game_id, :player, player_id )
+    player = Player.get_state(player_pid) 
+    { :reply, { :ok, player }, state } 
+    # case PlayerList.retrieve(state.players, { :private_id, private_id }) do
+    #   nil -> {}
+    # end  
+  end
+
   defp add_player(name, websocket_pid, state) do
-    {:ok, player_pid} = via_tuple(state.game_id, :player_supervisor)
-    |> PlayerSupervisor.add_player(name, state.game_id, websocket_pid)
+    sup_pid = via_tuple(state.game_id, :player_supervisor)
+    {:ok, player_pid} = PlayerSupervisor.add_player(sup_pid, name, state.game_id, websocket_pid)
 
     player = Player.get_state(player_pid)
     player_list = PlayerList.store(state.players, player.id, player.private_id, name)
 
     # needs private_id, game_id, and name
     { :reply,
-      { :ok, player_pid, player },
+      { :ok, player },
       %{ state | players: player_list }
     }
   end

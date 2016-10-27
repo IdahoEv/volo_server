@@ -31,8 +31,7 @@ defmodule Volo.Game.Player do
   end
 
   def get_state(pid), do: GenServer.call(pid, :get_state)
-
-
+  
   def init([name, game_id, websocket_pid]) do
     id = Volo.Util.ID.short
     :gproc.reg gproc_regkey(game_id, :player, id), self
