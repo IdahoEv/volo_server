@@ -16,6 +16,8 @@ defmodule Volo.Game.Scoreboard do
 
   # GenServer Callbacks
   def init(game_id) do
+    label_for_development(__MODULE__, game_id)
+
     {:ok, %__MODULE__{ game_id: game_id }}
   end
 

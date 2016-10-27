@@ -1,4 +1,7 @@
-defmodule CowboyInit do
+defmodule Volo.Web.CowboyInit do
+  import Apex.AwesomeDef
+  alias Volo.Web.WebsocketHandler
+
   def start(_type, _args) do
     dispatch_config = build_dispatch_config
     { :ok, _ } = :cowboy.start_http(:http,

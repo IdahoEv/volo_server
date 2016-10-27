@@ -23,7 +23,9 @@ defmodule Volo.Game.World do
   end
 
   # GenServer Callbacks
-  def init(_) do
+  def init(game_id) do
+    label_for_development(__MODULE__, game_id)
+
     { :ok, nil }
   end
 

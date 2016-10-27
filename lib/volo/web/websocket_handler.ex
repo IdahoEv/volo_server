@@ -1,40 +1,43 @@
-defmodule WebsocketHandler do
+defmodule Volo.Web.WebsocketHandler do
   import Apex.AwesomeDef
-  @behavior :cowboy_websocket_handler
+  @behaviour :cowboy_websocket_handler
 
   alias Volo.Game
   alias Volo.Game.Player
 
-  defstruct player_pid: nil,
+  defstruct player_id: nil,
             private_id: nil,
             game_id: nil
 
-  adef init(req, state) do
-    # :erlang.start_timer(1000, self, [])
+  def init(req, state) do
+    IO.puts "\nWSH init running:"
+    IO.inspect state
     {:cowboy_websocket, req, state}
   end
 
-  def terminate do
+  adef terminate(_reason, _req, _state) do
     :ok
   end
 
   def websocket_handle({:text, msg}, req, state) do
-    IO.puts "Incoming message on websocket #{self()}"
-    IO.inspect msg
+    [ wsocket: self, message: msg, state: state] 
+    |> Trace.i "Incoming message on websocket"
+    
     data = Poison.Parser.parse!(msg, as: %{})
-    IO.inspect data
-    handle_message(data, req, state)
+      |> Trace.i "Websocket data:"
+    # handle_message(data, req, state)
+    { :ok, req, state }
   end
 
   def handle_message(%{ connect: data }, req, state) do
-    case Game.register_player(data) do
-      { :ok, player, game_id } -> successful_connection(player)
+    case Game.connect_player(data) |> IO.inspect do
+      { :ok, player } -> successful_connection(player)
       { :error, reason } -> failed_connection(reason)
     end
     |> reply(req, state)
   end
 
-  def handle_message(data, state) do
+  def handle_message(data, req, state) do
     { :ok, state }
   end
 
