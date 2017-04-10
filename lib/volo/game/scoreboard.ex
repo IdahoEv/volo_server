@@ -9,9 +9,9 @@ defmodule Volo.Game.Scoreboard do
   import Volo.Game.RegistryUtils
 
   # API
-  def start_link([game_id]) do
+  def start_link([game_id], opts \\ []) do
     GenServer.start_link(__MODULE__, game_id,
-      name: via_tuple(game_id, :scoreboard))
+      Keyword.merge(opts, name: via_tuple(game_id, :scoreboard)))
   end
 
   # GenServer Callbacks

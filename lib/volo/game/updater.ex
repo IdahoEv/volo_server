@@ -10,9 +10,9 @@ defmodule Volo.Game.Updater do
   use GenServer
   import Volo.Game.RegistryUtils
 
-  def start_link([game_id]) do
+  def start_link([game_id], opts \\ []) do
     GenServer.start_link(__MODULE__, [game_id],
-      name: via_tuple([game_id], :updater))
+      Keyword.merge(opts, name: via_tuple(game_id, :updater)))
   end
 
   # GenServer Callbacks

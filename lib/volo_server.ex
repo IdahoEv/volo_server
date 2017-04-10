@@ -1,7 +1,11 @@
 defmodule VoloServer do
+  import Volo.Game.RegistryUtils
+  
+  
   def start(_type, _args) do
-    Volo.Web.CowboyInit.start(nil, nil)
-    { pid, _game_id} = Volo.Game.GameSupervisor.new_game()
+    { pid, game_id} = Volo.Game.GameSupervisor.new_game()
+    Trace.i game_id, "Started game.  ID is:"
+    Volo.Web.CowboyInit.start(nil, [game_id])
     { :ok, pid }
   end
 

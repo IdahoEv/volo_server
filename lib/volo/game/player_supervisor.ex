@@ -4,9 +4,9 @@ defmodule Volo.Game.PlayerSupervisor do
   import Apex.AwesomeDef
 
   # API
-  def start_link([game_id]) do
+  def start_link([game_id], opts \\ []) do
     Supervisor.start_link(__MODULE__, [game_id],
-      name: via_tuple(game_id, :player_supervisor))
+      Keyword.merge(opts, name: via_tuple(game_id, :player_supervisor)))
   end
 
   def add_player(supervisor_pid, name, game_id, websocket_pid) do
