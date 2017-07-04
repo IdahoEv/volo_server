@@ -55,6 +55,22 @@ defmodule GameTest do
         return_2 = Game.handle_call({:connect_player, 'name', nil}, self(), state_1)
         assert { :reply, { :error, :name_taken }, _state_2 }  = return_2
       end
+      
+      context "if the name is not supplied" do
+        it "returns 'Guest 1' as the name of the first player", data do
+          return_1 = Game.handle_call({:connect_player, nil, nil}, self(), data[:state])
+          { :reply, { :ok, player }, _state } = return_1  
+          assert player.name == "Guest 1"
+        end
+        
+        it "returns 'Guest 2' as the name of the second player", data do
+          return_1 = Game.handle_call({:connect_player, nil, nil}, self(), data[:state])
+          { :reply, _, new_state} = return_1 
+          return_2 = Game.handle_call({:connect_player, nil, nil}, self(), new_state)
+          { :reply, { :ok, player }, _state } = return_2 
+          assert player.name == "Guest 2"                                
+        end
+      end
     end
 
     context "with a private_id that matches an existing player" do

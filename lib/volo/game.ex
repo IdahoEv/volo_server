@@ -82,6 +82,9 @@ defmodule Volo.Game do
 
   defp add_player(name, websocket_pid, state) do
     sup_pid = via_tuple(state.game_id, :player_supervisor)
+    if name == nil do
+      name = available_guest_name(state)
+    end
     {:ok, player_pid} = PlayerSupervisor.add_player(sup_pid, name, state.game_id, websocket_pid)
 
     player = Player.get_state(player_pid)
@@ -93,5 +96,19 @@ defmodule Volo.Game do
       %{ state | players: player_list }
     }
   end
+  
+  defp available_guest_name(state) do
+    available_guest_name(state, 1)
+  end
+  
+  defp available_guest_name(state, nn) do
+    name = "Guest #{nn}"
+    if PlayerList.retrieve(state.players, { :name, name }) do
+      available_guest_name(state, nn + 1)
+    else
+      name
+    end
+  end
+  
 
 end
