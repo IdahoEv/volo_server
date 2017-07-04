@@ -24,11 +24,10 @@ defmodule GameTest do
   describe "connecting a player" do
     context "with no private_id specified" do
 
-      @tag :focus
       it "creates a new player and returns the right stuff", data do
         state = data[:state]
 
-        return = Game.handle_call({:connect_player, 'name', nil}, self, state)
+        return = Game.handle_call({:connect_player, 'name', nil}, self(), state)
 
         # player Map is returned, contains correct info
         assert { :reply, { :ok, player }, updated_state } = return
@@ -48,12 +47,12 @@ defmodule GameTest do
       it "if the name is taken it returns an error", data do
 
         # First player addition called 'name' is okay
-        return_1 = Game.handle_call({:connect_player, 'name', nil}, self, data[:state])
+        return_1 = Game.handle_call({:connect_player, 'name', nil}, self(), data[:state])
         assert { :reply, { :ok, _player }, state_1 } = return_1
         
         # Second player addition called 'name' is not okay, return includes
         # { :error, :name_taken }
-        return_2 = Game.handle_call({:connect_player, 'name', nil}, self, state_1)
+        return_2 = Game.handle_call({:connect_player, 'name', nil}, self(), state_1)
         assert { :reply, { :error, :name_taken }, _state_2 }  = return_2
       end
     end
@@ -62,7 +61,7 @@ defmodule GameTest do
       # @tag :focus
       it "if the name matches, it connects this websocket to that player", data do
         # connect a player
-        return_1 = Game.handle_call({:connect_player, 'name', nil}, self, data[:state])
+        return_1 = Game.handle_call({:connect_player, 'name', nil}, self(), data[:state])
         assert { :reply, { :ok, player }, state_1 } = return_1
 
         # reconnect the same player by specifying private_id
@@ -80,7 +79,7 @@ defmodule GameTest do
       
       it "if the name doesn't match, it returns an error", data do
         # connect a player
-        return_1 = Game.handle_call({:connect_player, 'name', nil}, self, data[:state])
+        return_1 = Game.handle_call({:connect_player, 'name', nil}, self(), data[:state])
         assert { :reply, { :ok, player }, state_1 } = return_1
 
         # reconnect the same player by specifying private_id, but with
@@ -97,7 +96,7 @@ defmodule GameTest do
       it "rejects with :player_not_found", data do
 
         # connect a player
-        return_1 = Game.handle_call({:connect_player, 'name', nil}, self, data[:state])
+        return_1 = Game.handle_call({:connect_player, 'name', nil}, self(), data[:state])
         assert { :reply, { :ok, _player }, state_1 } = return_1
 
         # reconnect the same player by specifying private_id, but with
