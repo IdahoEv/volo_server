@@ -12,7 +12,7 @@ defmodule Volo.Game do
 
   # API
   def start_link([game_id], opts \\ []) do
-    Trace.i(game_id, "game start link")
+    # Trace.i(game_id, "game start link")
     GenServer.start_link(__MODULE__,
       [game_id],
       Keyword.merge(opts, name: via_tuple(game_id, :game))
@@ -26,10 +26,11 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def connect_player(game_id, data) do
-    [ gid: game_id, data: data] |> Trace.i("connect_player API called")
+    [ gid: game_id, data: data] 
+      # |> Trace.i("connect_player API called")
     GenServer.call(via_tuple(game_id, :game), 
       {:connect_player, "foo", data["private_id"]})
-      |> Trace.i("Via tuple for connect_player")
+      # |> Trace.i("Via tuple for connect_player")
   end
 
   def disconnect_player, do: nil
@@ -51,7 +52,8 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
-    [ name: name, ws_pid: websocket_pid, state: state ] |> Trace.i("connect player no private id")
+    [ name: name, ws_pid: websocket_pid, state: state ] 
+    # |> Trace.i("connect player no private id")
     PlayerList.retrieve(state.players, { :name, name })
     #  |> Trace.ap "Find by name >#{name}<"
 
@@ -64,7 +66,8 @@ defmodule Volo.Game do
   end
 
   def handle_call( {:connect_player, name, private_id}, websocket_pid, state) do
-    [ name: name, ws_pid: websocket_pid, state: state ] |> Trace.i("connect player with private id")
+    [ name: name, ws_pid: websocket_pid, state: state ] 
+      # |> Trace.i("connect player with private id")
     case PlayerList.retrieve(state.players, { :private_id, private_id }) do
       # player is found and name matches
       { player_id, private_id, ^name } -> reconnect_player(player_id, websocket_pid, state)
