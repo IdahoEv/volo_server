@@ -39,45 +39,51 @@ defmodule Volo.Web.WebsocketHandler do
     # |> Trace.ap ("Unhandled frame received by websocket handler:")
   end
 
-  def handle_message(%{ "connect" => data},req,state) do
-    [data: data, req: req, state: state] |> Trace.i("Handle Message")
-    case Game.connect_player(state[:game_id], data) do
-      # |> Trace.i("Game response to connection attempt") do
-      { :ok, player } -> successful_connection(player)
-      { :error, reason } -> failed_connection(reason)
-    end 
-    #  |> Trace.i("Result of connection attempt")  
-    { :reply, { :text, "1" }, req, state }
-  end
-  # def handle_message(%{ "connect" => data }, req, state) do
-  #   [ data: data, req: req, state: state]
-  #   |> Trace.i "handle_message called with"
-  #   case Game.connect_player(state[:game_id], data) 
-  #     |> Trace.i("Game response to connection attempt") do
+  # def handle_message(%{ "connect" => data},req,state) do
+  #   [data: data, req: req, state: state] |> Trace.i("Handle Message")
+  #   case Game.connect_player(state[:game_id], data) do
+  #     # |> Trace.i("Game response to connection attempt") do
   #     { :ok, player } -> successful_connection(player)
   #     { :error, reason } -> failed_connection(reason)
-  #   end
-  #   |> reply(req, state)
+  #   end 
+  #     |> Trace.i("Result of connection attempt")  
+  #   { :reply, { :text, "1" }, req, state }
   # end
-  # 
-  # def handle_message(data, req, state) do
-  #   data
-  #      |> Trace.i "Unhandled message received by websocket handler:"
-  #   { :ok, state }
-  # end
+  def handle_message(%{ "connect" => data }, req, state) do
+    [ data: data, req: req, state: state]
+    # |> Trace.i "handle_message called with"
+    case Game.connect_player(state[:game_id], data) 
+      # |> Trace.i("Game response to connection attempt") 
+      do
+      { :ok, player } -> successful_connection(player)
+      { :error, reason } -> failed_connection(reason)
+    end
+    # |> Trace.i "Websocket message response"
+    |> reply(req, state)
+  end
+  
+  def handle_message(data, req, state) do
+    data
+       |> Trace.i "Unhandled message received by websocket handler:"
+    { :ok, state }
+  end
 
   defp successful_connection(player) do
-    Poison.encode %{ connected: %{
+    { :ok, message_string } = Poison.encode %{ connected: %{
       private_id: player.private_id,
-      game_id: player.game_id
+      game_id: player.game_id,
+      player_name: player.name
     }}
+    message_string
   end
 
   defp failed_connection(reason) do
-    Poison.encode %{ connection_failed: reason }
+    { :ok, message_string } = Poison.encode %{ connection_failed: reason }
+    message_string
   end
 
   defp reply(message, req, state) do
-    { :reply, { :text, message}, req, state}
+    Trace.ap message, "WS Handler reply message"
+    { :reply, { :text, message}, req, state } # |> Trace.ap "WS Handler reply retval"
   end
 end

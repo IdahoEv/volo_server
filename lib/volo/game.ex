@@ -29,7 +29,7 @@ defmodule Volo.Game do
     [ gid: game_id, data: data] 
       # |> Trace.i("connect_player API called")
     GenServer.call(via_tuple(game_id, :game), 
-      {:connect_player, "foo", data["private_id"]})
+      {:connect_player, data["player_name"], data["private_id"]})
       # |> Trace.i("Via tuple for connect_player")
   end
 
@@ -85,9 +85,8 @@ defmodule Volo.Game do
 
   defp add_player(name, websocket_pid, state) do
     sup_pid = via_tuple(state.game_id, :player_supervisor)
-    if name == nil do
-      name = available_guest_name(state)
-    end
+    name = name || available_guest_name(state)
+    
     {:ok, player_pid} = PlayerSupervisor.add_player(sup_pid, name, state.game_id, websocket_pid)
 
     player = Player.get_state(player_pid)
