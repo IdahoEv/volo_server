@@ -12,9 +12,10 @@ defmodule Volo.Game do
 
   # API
   def start_link([game_id], opts \\ []) do
+    # Trace.i(game_id, "game start link")
     GenServer.start_link(__MODULE__,
       [game_id],
-      opts
+      Keyword.merge(opts, name: via_tuple(game_id, :game))
     )
   end
 
@@ -24,15 +25,19 @@ defmodule Volo.Game do
   { :ok, player_pid, player_state }
   { :error, reason }
   """
-  def connect_player(data) do
-    GenServer.call(:connect_player, data)
+  def connect_player(game_id, data) do
+    [ gid: game_id, data: data] 
+      # |> Trace.i("connect_player API called")
+    GenServer.call(via_tuple(game_id, :game), 
+      {:connect_player, data["player_name"], data["private_id"]})
+      # |> Trace.i("Via tuple for connect_player")
   end
 
   def disconnect_player, do: nil
   def get_players, do: nil
 
   # Callbacks
-  def init(game_id) do
+  def init([game_id]) do
     label_for_development(__MODULE__, game_id)
     {:ok, %__MODULE__{ game_id: game_id }}
   end
@@ -47,6 +52,8 @@ defmodule Volo.Game do
   { :error, reason }
   """
   def handle_call( {:connect_player, name, nil}, websocket_pid, state) do
+    [ name: name, ws_pid: websocket_pid, state: state ] 
+    # |> Trace.i("connect player no private id")
     PlayerList.retrieve(state.players, { :name, name })
     #  |> Trace.ap "Find by name >#{name}<"
 
@@ -59,6 +66,8 @@ defmodule Volo.Game do
   end
 
   def handle_call( {:connect_player, name, private_id}, websocket_pid, state) do
+    [ name: name, ws_pid: websocket_pid, state: state ] 
+      # |> Trace.i("connect player with private id")
     case PlayerList.retrieve(state.players, { :private_id, private_id }) do
       # player is found and name matches
       { player_id, private_id, ^name } -> reconnect_player(player_id, websocket_pid, state)
@@ -76,6 +85,8 @@ defmodule Volo.Game do
 
   defp add_player(name, websocket_pid, state) do
     sup_pid = via_tuple(state.game_id, :player_supervisor)
+    name = name || available_guest_name(state)
+    
     {:ok, player_pid} = PlayerSupervisor.add_player(sup_pid, name, state.game_id, websocket_pid)
 
     player = Player.get_state(player_pid)
@@ -87,5 +98,19 @@ defmodule Volo.Game do
       %{ state | players: player_list }
     }
   end
+  
+  defp available_guest_name(state) do
+    available_guest_name(state, 1)
+  end
+  
+  defp available_guest_name(state, nn) do
+    name = "Guest #{nn}"
+    if PlayerList.retrieve(state.players, { :name, name }) do
+      available_guest_name(state, nn + 1)
+    else
+      name
+    end
+  end
+  
 
 end

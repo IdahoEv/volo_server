@@ -31,7 +31,6 @@ defmodule Volo.Game.RegistryUtils do
     :gproc.lookup_pid(gproc_regkey(game_id, :player, name))
   end
 
-
   def label_for_development(module_name, game_id) do
     if Application.get_env(:volo_server, :dynamic_atom_process_labels) do
       Process.register(self, :"#{module_name}-#{game_id}")

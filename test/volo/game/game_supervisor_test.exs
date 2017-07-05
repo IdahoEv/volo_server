@@ -1,5 +1,7 @@
 defmodule GameSupervisorTest do
   use ExSpec, async: true
+  
+  alias Volo.Game.RegistryUtils
 
   doctest Volo.Game.GameSupervisor
 
@@ -23,8 +25,15 @@ defmodule GameSupervisorTest do
       ] -- modules == []
     end
 
-    @tag :skip
-    it "should assert that they are correctly registered with :gproc"
-
+    it "should assert that they are correctly registered with :gproc" do
+      { _sup_pid, game_id } = Volo.Game.GameSupervisor.new_game
+      assert :gproc.lookup_pid(RegistryUtils.gproc_regkey(game_id, :game))
+      assert :gproc.lookup_pid(RegistryUtils.gproc_regkey(game_id, :world)) 
+      assert :gproc.lookup_pid(RegistryUtils.gproc_regkey(game_id, :scoreboard))
+      assert :gproc.lookup_pid(RegistryUtils.gproc_regkey(game_id, :updater))
+      assert :gproc.lookup_pid(RegistryUtils.gproc_regkey(game_id, :player_supervisor))
+      assert :gproc.lookup_pid(RegistryUtils.gproc_regkey(game_id, :game_supervisor))
+    end
+    
   end
 end

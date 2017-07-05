@@ -17,9 +17,9 @@ defmodule Volo.Game.World do
   import Volo.Game.RegistryUtils
 
   # API
-  def start_link([game_id]) do
+  def start_link([game_id], opts \\ []) do
     GenServer.start_link(__MODULE__, [game_id],
-      name: via_tuple(game_id, :world))
+      Keyword.merge(opts, name: via_tuple(game_id, :world)))
   end
 
   # GenServer Callbacks
