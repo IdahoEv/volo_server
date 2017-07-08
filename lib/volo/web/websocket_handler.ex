@@ -2,6 +2,8 @@ defmodule Volo.Web.WebsocketHandler do
   import Apex.AwesomeDef
   @behaviour :cowboy_websocket_handler
 
+  @heartbeat_interval 500
+  
   alias Volo.Game
   alias Volo.Game.Player
 
@@ -67,6 +69,27 @@ defmodule Volo.Web.WebsocketHandler do
        |> Trace.i "Unhandled message received by websocket handler:"
     { :ok, state }
   end
+  
+  # Loop to send heartbeat periodically
+  def websocket_info(:send_heartbeat, req, state) do
+    Process.send_after(self(), :send_heartbeat, @heartbeat_interval)
+    { :reply, { :text, heartbeat_message() }, req, state }
+  end
+  
+  def heartbeat_message do
+    { :ok, message } = Poison.encode %{
+      heartbeat: %{
+        id: Volo.Util.ID.short(),
+        timestamp: Volo.Util.Time.now()
+      }
+    }
+    message
+  end
+  
+  def initiate_heartbeat do
+    IO.puts("Initiating heartbeat") 
+    Process.send_after(self(), :send_heartbeat, @heartbeat_interval)
+  end
 
   defp successful_connection(player) do
     { :ok, message_string } = Poison.encode %{ connected: %{
@@ -74,6 +97,7 @@ defmodule Volo.Web.WebsocketHandler do
       game_id: player.game_id,
       player_name: player.name
     }}
+    initiate_heartbeat
     message_string
   end
 
