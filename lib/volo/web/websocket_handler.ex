@@ -6,10 +6,12 @@ defmodule Volo.Web.WebsocketHandler do
   
   alias Volo.Game
   alias Volo.Game.Player
+  alias Volo.Web.Heartbeat
 
   defstruct player_id: nil,
             private_id: nil,
-            game_id: nil
+            game_id: nil,
+            heartbeat_history: []
 
   def init(req, [game_id]) do
     
@@ -18,7 +20,7 @@ defmodule Volo.Web.WebsocketHandler do
     # a game lobby will identify availabke games to the client, which will request
     # connection to them by looking up that game's process in the :gproc registry
     game_id #|> Trace.i("Websocket init, game id is:")
-    {:cowboy_websocket, req, [ game_id: game_id ]}
+    {:cowboy_websocket, req, %__MODULE__{ game_id: game_id }}
   end
 
   def terminate(_reason, _req, _state) do
@@ -54,9 +56,10 @@ defmodule Volo.Web.WebsocketHandler do
   def handle_message(%{ "connect" => data }, req, state) do
     [ data: data, req: req, state: state]
     # |> Trace.i "handle_message called with"
-    case Game.connect_player(state[:game_id], data) 
+    case Game.connect_player(state.game_id, data) 
       # |> Trace.i("Game response to connection attempt") 
       do
+        #TODO: Update state with player ID and private ID?
       { :ok, player } -> successful_connection(player)
       { :error, reason } -> failed_connection(reason)
     end
@@ -70,19 +73,32 @@ defmodule Volo.Web.WebsocketHandler do
     { :ok, state }
   end
   
-  # Loop to send heartbeat periodically
+  @doc """
+  # Loop to send periodic heartbeat
+  """
   def websocket_info(:send_heartbeat, req, state) do
     Process.send_after(self(), :send_heartbeat, @heartbeat_interval)
-    { :reply, { :text, heartbeat_message() }, req, state }
+    heartbeat = %Heartbeat{ 
+      id: Volo.Util.ID.short(),
+      sent: Volo.Util.Time.now()
+    }
+    message = heartbeat_message(heartbeat) |> Trace.i("Heartbeat")
+    history = Heartbeat.append_to_list(
+      state.heartbeat_history, 
+      heartbeat
+    )
+    { :reply, { :text, message }, req, 
+      %__MODULE__{ state | heartbeat_history: history }
+    }
   end
   
-  def heartbeat_message do
-    { :ok, message } = Poison.encode %{
+  def heartbeat_message(heartbeat) do
+    { :ok, message } = Poison.encode(%{
       heartbeat: %{
-        id: Volo.Util.ID.short(),
-        timestamp: Volo.Util.Time.now()
+        id: heartbeat.id,
+        sent: heartbeat.sent
       }
-    }
+    })
     message
   end
   
