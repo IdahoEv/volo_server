@@ -5,7 +5,7 @@ defmodule HeartbeatTest do
   doctest Volo.Web.Heartbeat
   
   describe "update_with_reply" do
-    it "adds the client time to the heartbeat" do
+    it "adds the client time and received time to the heartbeat" do
       beat = %Heartbeat{ id: "foo", "sent": 1234.56 }
       new_beat = Heartbeat.update_with_reply(
        beat,
@@ -13,6 +13,7 @@ defmodule HeartbeatTest do
         1234.78
       )
       assert new_beat.client_time == 1234.67      
+      assert new_beat.reply_received == 1234.78      
     end
     
     it "computes the RTT" do
@@ -54,7 +55,22 @@ defmodule HeartbeatTest do
       list = Heartbeat.append_to_list(list, beat )
       assert length(list) == 20
       assert List.first(list) == beat
-      # assert List.first(new_list) == beat
     end    
+  end
+  
+  describe "update_list_with_reply" do
+    it "updates the entry matching the supplied ID" do
+      list = for nn <- 1..5 do 
+        %Heartbeat{ id: "foo#{nn}", "sent": 1000.00 + nn } 
+      end
+      list = Heartbeat.update_list_with_reply(list, 
+        %{ client_time: 1025.67, id: "foo3" },
+        1005.67
+      )
+      beat = list |> Enum.find(fn(bb) -> bb.id == "foo3" end)
+      assert beat.client_time == 1025.67
+      assert_in_delta beat.rtt, 2.67, 0.01
+      assert_in_delta beat.reply_received, 1005.67, 0.01
+    end
   end
 end  

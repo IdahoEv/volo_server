@@ -27,14 +27,29 @@ defmodule Volo.Web.Heartbeat do
   def update_with_reply(beat, reply, received_at) do
     %__MODULE__{ beat | 
       client_time: reply.client_time,
-      rtt: received_at - beat.sent       
+      rtt: received_at - beat.sent,
+      reply_received: received_at       
     }
   end 
   
   @doc """
   Adds a heartbeat to a list, keeping the list within max length
+  
+  TODO: Improve performance by finding only the first match and splicing it.
+  It'll usually be the first in the list, so no need to iterate
   """
   def append_to_list(list, beat) do
-    Enum.slice([ beat | list ],0..19)
+    Enum.slice([ beat | list ],0..(@list_max_length - 1))
+  end
+  
+  def update_list_with_reply(list, reply, received_at) do
+    new_list = for beat <- list do
+      if beat.id == reply.id do
+        update_with_reply(beat, reply, received_at)
+      else
+        beat
+      end      
+    end
+    new_list
   end
 end
