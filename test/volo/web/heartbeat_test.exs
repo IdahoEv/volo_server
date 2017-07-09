@@ -9,7 +9,7 @@ defmodule HeartbeatTest do
       beat = %Heartbeat{ id: "foo", "sent": 1234.56 }
       new_beat = Heartbeat.update_with_reply(
        beat,
-        %{ client_time: 1234.67 },
+        %{ "client_time" => 1234.67 },
         1234.78
       )
       assert new_beat.client_time == 1234.67      
@@ -20,7 +20,7 @@ defmodule HeartbeatTest do
       beat = %Heartbeat{ id: "foo", "sent": 1234.56 }
       new_beat = Heartbeat.update_with_reply(
        beat,
-        %{ client_time: 1234.67 },
+        %{ "client_time" => 1234.67 },
         1234.78
       )
       assert_in_delta(new_beat.rtt, 0.22, 0.01)      
@@ -49,7 +49,7 @@ defmodule HeartbeatTest do
         %Heartbeat{ id: "foo#{nn}", "sent": 1000.00 + nn } 
       end
       
-      list = Heartbeat.append_to_list(list, %Heartbeat{ id: "bar1", "sent": 1235.56 } )
+      list = Heartbeat.append_to_list(list, %Heartbeat{ id: "bar1", sent: 1235.56 } )
       assert length(list) == 20
       beat = %Heartbeat{ id: "bar2", "sent": 1236.56 }
       list = Heartbeat.append_to_list(list, beat )
@@ -64,13 +64,43 @@ defmodule HeartbeatTest do
         %Heartbeat{ id: "foo#{nn}", "sent": 1000.00 + nn } 
       end
       list = Heartbeat.update_list_with_reply(list, 
-        %{ client_time: 1025.67, id: "foo3" },
+        %{ "client_time" => 1025.67, "id" => "foo3" },
         1005.67
       )
       beat = list |> Enum.find(fn(bb) -> bb.id == "foo3" end)
       assert beat.client_time == 1025.67
       assert_in_delta beat.rtt, 2.67, 0.01
       assert_in_delta beat.reply_received, 1005.67, 0.01
+    end
+  end
+  
+  describe "average_rtt" do
+    it "is correct for a set of heartbeats" do
+      list = for nn <- 1..5 do 
+        %Heartbeat{ id: "foo#{nn}", rtt: 0.100 } 
+      end
+      avg = Heartbeat.average_rtt(list)
+      assert( avg == 0.100)
+    end
+    
+    it "is correct when nil values are included" do
+      list = [
+        %Heartbeat{ id: "foo1", rtt: 0.100 },
+        %Heartbeat{ id: "foo2", rtt: nil },
+        %Heartbeat{ id: "foo3", rtt: 0.300 },         
+      ]
+      avg = Heartbeat.average_rtt(list)
+      assert_in_delta( avg, 0.200, 0.01)
+    end
+    
+    it "is zero when no all rtts are nil" do
+      list = [
+        %Heartbeat{ id: "foo1", rtt: nil },
+        %Heartbeat{ id: "foo2", rtt: nil },
+        %Heartbeat{ id: "foo3", rtt: nil },         
+      ]
+      avg = Heartbeat.average_rtt(list)
+      assert_in_delta( avg, 0.00, 0.01)      
     end
   end
 end  

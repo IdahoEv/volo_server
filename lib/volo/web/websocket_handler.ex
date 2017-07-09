@@ -19,7 +19,7 @@ defmodule Volo.Web.WebsocketHandler do
     # is passed in to the websocket handler's state.  TO support multiple games,
     # a game lobby will identify availabke games to the client, which will request
     # connection to them by looking up that game's process in the :gproc registry
-    game_id #|> Trace.i("Websocket init, game id is:")
+    # game_id |> Trace.i("Websocket init, game id is:")
     {:cowboy_websocket, req, %__MODULE__{ game_id: game_id }}
   end
 
@@ -28,7 +28,7 @@ defmodule Volo.Web.WebsocketHandler do
   end
 
   def websocket_handle({:text, msg}, req, state) do
-    [ wsocket: self, message: msg, state: state] 
+    [ wsocket: self(), message: msg, state: state] 
     # |> Trace.i("Incoming frame on websocket")
     
     data = Poison.Parser.parse!(msg, as: %{})
@@ -40,22 +40,13 @@ defmodule Volo.Web.WebsocketHandler do
   
   def websocket_handle(frame, req, state) do
     [ frame: frame, req: req, state: state]
-    # |> Trace.ap ("Unhandled frame received by websocket handler:")
+    |> Trace.ap("Unhandled frame received by websocket handler:")
   end
 
-  # def handle_message(%{ "connect" => data},req,state) do
-  #   [data: data, req: req, state: state] |> Trace.i("Handle Message")
-  #   case Game.connect_player(state[:game_id], data) do
-  #     # |> Trace.i("Game response to connection attempt") do
-  #     { :ok, player } -> successful_connection(player)
-  #     { :error, reason } -> failed_connection(reason)
-  #   end 
-  #     |> Trace.i("Result of connection attempt")  
-  #   { :reply, { :text, "1" }, req, state }
-  # end
+  @doc """
+  Handle connection messages 
+  """
   def handle_message(%{ "connect" => data }, req, state) do
-    [ data: data, req: req, state: state]
-    # |> Trace.i "handle_message called with"
     case Game.connect_player(state.game_id, data) 
       # |> Trace.i("Game response to connection attempt") 
       do
@@ -66,12 +57,25 @@ defmodule Volo.Web.WebsocketHandler do
     # |> Trace.i "Websocket message response"
     |> reply(req, state)
   end
+
+  @doc """
+  Handle Heartbeat replies, compute RTT
+  """
+  def handle_message(%{ "heartbeat_reply" => data }, req, state) do                        
+    # [ data: data, req: req, state: state]
+    history = state.heartbeat_history
+      |> Heartbeat.update_list_with_reply(data, Volo.Util.Time.now())
+      # |> Trace.ap("heartbeat history")
+      
+    { :ok, req, %__MODULE__{ state | heartbeat_history: history } }
+  end
   
   def handle_message(data, req, state) do
-    data
-       |> Trace.i "Unhandled message received by websocket handler:"
-    { :ok, state }
+    %{ "heartbeat_reply" => content } = data
+    data |> Trace.i("Unhandled message received by websocket handler:")
+    { :ok, req, state }
   end
+  
   
   @doc """
   # Loop to send periodic heartbeat
@@ -82,11 +86,10 @@ defmodule Volo.Web.WebsocketHandler do
       id: Volo.Util.ID.short(),
       sent: Volo.Util.Time.now()
     }
-    message = heartbeat_message(heartbeat) |> Trace.i("Heartbeat")
-    history = Heartbeat.append_to_list(
-      state.heartbeat_history, 
-      heartbeat
-    )
+    message = heartbeat_message(heartbeat) 
+    history = state.heartbeat_history
+      |> Heartbeat.append_to_list(heartbeat)
+      
     { :reply, { :text, message }, req, 
       %__MODULE__{ state | heartbeat_history: history }
     }
@@ -113,7 +116,7 @@ defmodule Volo.Web.WebsocketHandler do
       game_id: player.game_id,
       player_name: player.name
     }}
-    initiate_heartbeat
+    initiate_heartbeat()
     message_string
   end
 

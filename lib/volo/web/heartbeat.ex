@@ -26,7 +26,7 @@ defmodule Volo.Web.Heartbeat do
   """          
   def update_with_reply(beat, reply, received_at) do
     %__MODULE__{ beat | 
-      client_time: reply.client_time,
+      client_time: reply["client_time"],
       rtt: received_at - beat.sent,
       reply_received: received_at       
     }
@@ -44,12 +44,28 @@ defmodule Volo.Web.Heartbeat do
   
   def update_list_with_reply(list, reply, received_at) do
     new_list = for beat <- list do
-      if beat.id == reply.id do
+      if beat.id == reply["id"] do
         update_with_reply(beat, reply, received_at)
       else
         beat
       end      
     end
     new_list
+  end
+  
+  @doc """
+  Returns the average RTT from a list of heartbeats, including only
+  the ones that have an RTT measured.
+  """
+  def average_rtt(heartbeat_list) do
+    {count, sum } = Enum.reduce(heartbeat_list, {0, 0}, fn
+        (%{ rtt: nil}, {count, sum}) -> { count, sum }
+        (%{ rtt: rtt}, {count, sum}) -> { count + 1 , sum + rtt }
+      end)
+    if ( count > 0 ) do
+      sum / count 
+    else
+      0
+    end       
   end
 end
