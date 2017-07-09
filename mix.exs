@@ -30,7 +30,7 @@ defmodule VoloServer.Mixfile do
       { :cowboy, github: "ninenines/cowboy", tag: "2.0.0-pre.3" },
       { :poison, "~> 2.0"},
       { :uuid, "~> 1.1" },
-      { :apex, "~> 0.5.2 "},
+      { :apex, "~> 1.0.0 "},
       { :table_rex, "~> 0.8.3"},
       { :gproc, "~> 0.6.1"},
 

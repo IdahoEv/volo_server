@@ -11,7 +11,8 @@ defmodule Volo.Web.WebsocketHandler do
   defstruct player_id: nil,
             private_id: nil,
             game_id: nil,
-            heartbeat_history: []
+            heartbeat_history: [],
+            average_rtt: 0
 
   def init(req, [game_id]) do
     
@@ -62,12 +63,13 @@ defmodule Volo.Web.WebsocketHandler do
   Handle Heartbeat replies, compute RTT
   """
   def handle_message(%{ "heartbeat_reply" => data }, req, state) do                        
-    # [ data: data, req: req, state: state]
     history = state.heartbeat_history
       |> Heartbeat.update_list_with_reply(data, Volo.Util.Time.now())
-      # |> Trace.ap("heartbeat history")
       
-    { :ok, req, %__MODULE__{ state | heartbeat_history: history } }
+    { :ok, req, %__MODULE__{ 
+      state | heartbeat_history: history, 
+              average_rtt: Heartbeat.average_rtt(history) 
+    } }
   end
   
   def handle_message(data, req, state) do
@@ -106,7 +108,6 @@ defmodule Volo.Web.WebsocketHandler do
   end
   
   def initiate_heartbeat do
-    IO.puts("Initiating heartbeat") 
     Process.send_after(self(), :send_heartbeat, @heartbeat_interval)
   end
 

@@ -1,4 +1,4 @@
-%{"apex": {:hex, :apex, "0.5.2", "bc4d44c3f824d70cd295fc2fd395243df34a1c1659f5ef17381f5fbee1c7f00e", [:mix], []},
+%{"apex": {:hex, :apex, "1.0.0", "abf230314d35ca4c48a902f693247f190ad42fc14862b9c4f7dbb7077b21c20a", [:mix], []},
   "certifi": {:hex, :certifi, "0.4.0", "a7966efb868b179023618d29a407548f70c52466bf1849b9e8ebd0e34b7ea11f", [:rebar3], []},
   "cowboy": {:git, "https://github.com/ninenines/cowboy.git", "dbb636034f20736e16eb9d6c809217c9525b6cbd", [tag: "2.0.0-pre.3"]},
   "cowlib": {:git, "https://github.com/ninenines/cowlib", "8cf98c9f3d1292c1b08fca5ca99772ae912eaa86", [ref: "master"]},
