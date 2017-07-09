@@ -14,6 +14,8 @@ defmodule Volo.Web.Heartbeat do
              client_time:    "", # Time on the client when the reply was sent
              rtt:            ""  # total round trip time
 
+  @list_max_length 20 
+             
   @doc """
   beat should be a %Heartbeat{}.  
   
@@ -28,4 +30,11 @@ defmodule Volo.Web.Heartbeat do
       rtt: received_at - beat.sent       
     }
   end 
+  
+  @doc """
+  Adds a heartbeat to a list, keeping the list within max length
+  """
+  def append_to_list(list, beat) do
+    Enum.slice([ beat | list ],0..19)
+  end
 end

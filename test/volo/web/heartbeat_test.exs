@@ -25,4 +25,36 @@ defmodule HeartbeatTest do
       assert_in_delta(new_beat.rtt, 0.22, 0.01)      
     end    
   end
+  
+  describe "append_to_list" do
+    it "adds to an empty list" do
+      list = []
+      beat = %Heartbeat{ id: "foo", "sent": 1234.56 }
+      new_list = Heartbeat.append_to_list(list, beat)
+      assert length(new_list) == 1
+      assert List.first(new_list) == beat
+    end
+        
+    it "adds to a non-empty list" do
+      list = [ %Heartbeat{ id: "foo", "sent": 1234.56 } ]
+      beat = %Heartbeat{ id: "foo1", "sent": 1235.56 }
+      new_list = Heartbeat.append_to_list(list, beat)
+      assert length(new_list) == 2
+      assert List.first(new_list) == beat
+    end    
+    
+    it "limits the length of the list" do
+      list = for nn <- 1..19 do 
+        %Heartbeat{ id: "foo#{nn}", "sent": 1000.00 + nn } 
+      end
+      
+      list = Heartbeat.append_to_list(list, %Heartbeat{ id: "bar1", "sent": 1235.56 } )
+      assert length(list) == 20
+      beat = %Heartbeat{ id: "bar2", "sent": 1236.56 }
+      list = Heartbeat.append_to_list(list, beat )
+      assert length(list) == 20
+      assert List.first(list) == beat
+      # assert List.first(new_list) == beat
+    end    
+  end
 end  
