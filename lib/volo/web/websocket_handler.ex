@@ -88,7 +88,7 @@ defmodule Volo.Web.WebsocketHandler do
       id: Volo.Util.ID.short(),
       sent: Volo.Util.Time.now()
     }
-    message = heartbeat_message(heartbeat) 
+    message = heartbeat_message(heartbeat, state) 
     history = state.heartbeat_history
       |> Heartbeat.append_to_list(heartbeat)
       
@@ -97,11 +97,12 @@ defmodule Volo.Web.WebsocketHandler do
     }
   end
   
-  def heartbeat_message(heartbeat) do
+  def heartbeat_message(heartbeat, state) do
     { :ok, message } = Poison.encode(%{
       heartbeat: %{
         id: heartbeat.id,
-        sent: heartbeat.sent
+        sent: heartbeat.sent,
+        average_rtt: state.average_rtt
       }
     })
     message
